@@ -545,9 +545,11 @@ packages:
   twilio_programmable_video_platform_interface:
     dependency: transitive
     description:
-      path: "../../programmable_video_platform_interface"
-      relative: true
-    source: path
+      path: programmable_video_platform_interface
+      ref: HEAD
+      resolved-ref: d035e4ad58de8502caec488ed7ff0ea0c55e982b
+      url: "https://github.com/lewooz/twilio_video_fork.git"
+    source: git
     version: "0.6.0+1"
   typed_data:
     dependency: transitive
