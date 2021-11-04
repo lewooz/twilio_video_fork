@@ -376,14 +376,14 @@ class _ConferencePageState extends State<ConferencePage> {
 
   void _onShowBar() {
     setState(() {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [SystemUiOverlay.bottom, SystemUiOverlay.top]);
+      SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.bottom, SystemUiOverlay.top]);
     });
     _onButtonBarVisibleStreamController.add(true);
   }
 
   void _onHideBar() {
     setState(() {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [SystemUiOverlay.bottom]);
+      SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.bottom]);
     });
     _onButtonBarVisibleStreamController.add(false);
   }

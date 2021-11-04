@@ -168,7 +168,7 @@ class Room {
   /// Parse native room events to the right event streams.
   void _parseRoomEvents(BaseRoomEvent event) {
     TwilioProgrammableVideo._log("Room => Event '$event'");
-    if (event is SkippableRoomEvent) {
+    if (event is SkipAbleRoomEvent) {
       return;
     }
     _updateFromModel(event.roomModel);
@@ -226,7 +226,7 @@ class Room {
     TwilioProgrammableVideo._log("RemoteParticipant => Event '$event'");
 
     // If no remoteParticipant data is received, skip the event.
-    if (event is SkippableRemoteParticipantEvent) return;
+    if (event is SkipAbleRemoteParticipantEvent) return;
 
     final remoteParticipantModel = event.remoteParticipantModel;
     if (remoteParticipantModel != null) {
@@ -255,7 +255,7 @@ class Room {
     final localParticipant = _localParticipant;
 
     // If no localParticipant data is received, skip the event.
-    if (event is SkippableLocalParticipantEvent || localParticipant == null) {
+    if (event is SkipAbleLocalParticipantEvent || localParticipant == null) {
       return;
     }
 
@@ -270,7 +270,7 @@ class Room {
     TwilioProgrammableVideo._log("RemoteDataTrack => Event '$event'");
 
     // If no RemoteDataTrack data is received, skip the event.
-    if (event is SkippableRemoteDataTrackEvent) {
+    if (event is SkipAbleRemoteDataTrackEvent) {
       return;
     }
 

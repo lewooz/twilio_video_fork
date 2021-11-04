@@ -1,8 +1,3 @@
-## 0.7.0
-
-- Added `setAudioSettings`.
-- Added `disableAudioSettings`.
-
 ## 0.6.0+1
 
 - Bumped minor versions of dependencies

@@ -26,11 +26,10 @@ void main() {
   var nativeIsRemoteAudioTrackPlaybackEnabledIsCalled = false;
   var nativeDisconnectIsCalled = false;
   var nativeConnectIsCalled = false;
-  var nativeSetAudioSettingsIsCalled = false;
+  var nativeSetSpeakerphoneOnIsCalled = false;
   var nativeSpeakerPhoneOn = false;
-  var nativeBluetoothOn = false;
   var nativeCameraId = '';
-  var nativeGetAudioSettingsIsCalled = false;
+  var nativeGetSpeakerphoneOnIsCalled = false;
   var nativeSwitchCameraIsCalled = false;
 
   var cameraSource = CameraSource('BACK_CAMERA', false, false, false);
@@ -40,8 +39,6 @@ void main() {
   late StreamController remoteParticipantController;
   late StreamController localParticipantController;
   late StreamController remoteDataTrackController;
-  late StreamController audioNotificationController;
-  late StreamController loggingController;
 
   setUpAll(() {
     cameraController = StreamController<dynamic>.broadcast();
@@ -64,14 +61,6 @@ void main() {
     final remoteDataTrackChannel = MockEventChannel();
     when(remoteDataTrackChannel.receiveBroadcastStream(0)).thenAnswer((Invocation invoke) => remoteDataTrackController.stream);
 
-    audioNotificationController = StreamController<dynamic>.broadcast(sync: true);
-    final audioNotificationChannel = MockEventChannel();
-    when(audioNotificationChannel.receiveBroadcastStream()).thenAnswer((Invocation invoke) => audioNotificationController.stream);
-
-    loggingController = StreamController<dynamic>.broadcast(sync: true);
-    final loggingChannel = MockEventChannel();
-    when(loggingChannel.receiveBroadcastStream()).thenAnswer((Invocation invoke) => loggingController.stream);
-
     instance = MethodChannelProgrammableVideo.private(
       MethodChannel('twilio_programmable_video'),
       cameraChannel,
@@ -79,8 +68,6 @@ void main() {
       remoteParticipantChannel,
       localParticipantChannel,
       remoteDataTrackChannel,
-      audioNotificationChannel,
-      loggingChannel,
     );
 
     MethodChannel('twilio_programmable_video').setMockMethodCallHandler((MethodCall methodCall) async {
@@ -113,17 +100,13 @@ void main() {
         case 'connect':
           nativeConnectIsCalled = true;
           break;
-        case 'setAudioSettings':
-          nativeSetAudioSettingsIsCalled = true;
-          nativeSpeakerPhoneOn = methodCall.arguments['speakerphoneEnabled'];
-          nativeBluetoothOn = methodCall.arguments['bluetoothPreferred'];
+        case 'setSpeakerphoneOn':
+          nativeSetSpeakerphoneOnIsCalled = true;
+          nativeSpeakerPhoneOn = methodCall.arguments['on'];
           break;
-        case 'getAudioSettings':
-          nativeGetAudioSettingsIsCalled = true;
-          return <String, dynamic>{
-            'speakerphoneEnabled': nativeSpeakerPhoneOn,
-            'bluetoothPreferred': nativeBluetoothOn,
-          };
+        case 'getSpeakerphoneOn':
+          nativeGetSpeakerphoneOnIsCalled = true;
+          return nativeSpeakerPhoneOn;
         case 'CameraCapturer#switchCamera':
           nativeSwitchCameraIsCalled = true;
           nativeCameraId = methodCall.arguments['cameraId'];
@@ -144,21 +127,16 @@ void main() {
     await remoteParticipantController.close();
     await localParticipantController.close();
     await remoteDataTrackController.close();
-    await audioNotificationController.close();
-    await loggingController.close();
   });
 
   group('.debug()', () {
     test('should enable native debug in dart', () async {
-      await instance.setNativeDebug(true, true);
+      await instance.setNativeDebug(true);
       expect(nativeDebugIsCalled, true);
       expect(methodCalls, <Matcher>[
         isMethodCall(
           'debug',
-          arguments: {
-            'native': true,
-            'audio': true,
-          },
+          arguments: {'native': true},
         )
       ]);
     });
@@ -317,33 +295,27 @@ void main() {
     });
   });
 
-  group('.setAudioSettings() & .getAudioSettings()', () {
-    final speakerphoneOn = true;
-    final bluetoothOn = true;
+  group('.setSpeakerphoneOn() & .getSpeakerphoneOn()', () {
+    final callBool = true;
 
-    test('should call native setAudioSettings code in dart', () async {
-      await instance.setAudioSettings(speakerphoneOn, bluetoothOn);
-      expect(nativeSetAudioSettingsIsCalled, true);
+    test('should call native setSpeakerPhone code in dart', () async {
+      await instance.setSpeakerphoneOn(callBool);
+      expect(nativeSetSpeakerphoneOnIsCalled, true);
       expect(methodCalls, <Matcher>[
         isMethodCall(
-          'setAudioSettings',
-          arguments: {
-            'speakerphoneEnabled': speakerphoneOn,
-            'bluetoothPreferred': bluetoothOn,
-          },
+          'setSpeakerphoneOn',
+          arguments: {'on': callBool},
         )
       ]);
     });
 
     test('should call native getSpeakerPhone code in dart and get same bool as previously set', () async {
-      final result = await instance.getAudioSettings();
-      expect(result['speakerphoneEnabled'], speakerphoneOn);
-      expect(result['bluetoothPreferred'], bluetoothOn);
-
-      expect(nativeGetAudioSettingsIsCalled, true);
+      final result = await instance.getSpeakerphoneOn();
+      expect(result, callBool);
+      expect(nativeGetSpeakerphoneOnIsCalled, true);
       expect(methodCalls, <Matcher>[
         isMethodCall(
-          'getAudioSettings',
+          'getSpeakerphoneOn',
           arguments: null,
         )
       ]);
@@ -480,9 +452,9 @@ void main() {
       expect(lastEvent, isA<DominantSpeakerChanged>());
     });
 
-    test('invalid map should result in SkippableRoomEvent', () async {
+    test('invalid map should result in SkipAbleRoomEvent', () async {
       roomController.add({'data': {}});
-      expect(lastEvent, isA<SkippableRoomEvent>());
+      expect(lastEvent, isA<SkipAbleRoomEvent>());
     });
   });
 
@@ -672,9 +644,9 @@ void main() {
       expect(lastEvent, isA<RemoteVideoTrackUnsubscribed>());
     });
 
-    test('invalid map should result in SkippableRemoteParticipantEvent', () async {
+    test('invalid map should result in SkipAbleRemoteParticipantEvent', () async {
       remoteParticipantController.add({'data': {}});
-      expect(lastEvent, isA<SkippableRemoteParticipantEvent>());
+      expect(lastEvent, isA<SkipAbleRemoteParticipantEvent>());
     });
   });
 
@@ -746,9 +718,9 @@ void main() {
       expect(lastEvent, isA<LocalVideoTrackPublicationFailed>());
     });
 
-    test('invalid map should result in SkippableLocalParticipantEvent', () async {
+    test('invalid map should result in SkipAbleLocalParticipantEvent', () async {
       localParticipantController.add({'data': {}});
-      expect(lastEvent, isA<SkippableLocalParticipantEvent>());
+      expect(lastEvent, isA<SkipAbleLocalParticipantEvent>());
     });
   });
 
@@ -767,9 +739,9 @@ void main() {
     });
 
     final remoteDataTrackMap = EventChannelMaps.remoteDataTrackMap;
-    test('invalid map should result in SkippableRemoteDataTrackEvent', () async {
+    test('invalid map should result in SkipAbleRemoteDataTrackEvent', () async {
       remoteDataTrackController.add({'data': {}});
-      expect(lastEvent, isA<SkippableRemoteDataTrackEvent>());
+      expect(lastEvent, isA<SkipAbleRemoteDataTrackEvent>());
     });
 
     test('valid map with unknown event name should result in UnknownEvent', () async {
@@ -803,12 +775,6 @@ void main() {
   group('.loggingStream()', () {
     test('should return a Stream of dynamic', () {
       expect(instance.loggingStream(), isA<Stream<dynamic>>());
-    });
-  });
-
-  group('.audioNotificationStream()', () {
-    test('should return a Stream of dynamic', () {
-      expect(instance.audioNotificationStream(), isA<Stream<dynamic>>());
     });
   });
 }
