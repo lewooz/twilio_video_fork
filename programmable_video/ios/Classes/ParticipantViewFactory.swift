@@ -35,7 +35,7 @@ class ParticipantViewFactory: NSObject, FlutterPlatformViewFactory {
         }
 
         let videoView = VideoView.init(frame: frame)
-        let mode = UIView.ContentMode(rawValue: renderMode) ?? .scaleAspectFill
+        let mode = UIView.ContentMode(rawValue: renderMode) ?? .scaleAspectFit
         videoView.shouldMirror = shouldMirror
         videoView.contentMode = mode
         return ParticipantView(videoView, videoTrack: videoTrack)
